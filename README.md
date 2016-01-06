@@ -1,2 +1,4 @@
-# SpiritWord
+# WordAnalysis
+语义分析的java工具包
 NLPIR进行中文分词处理，后面利用VSM进行文档相似度分析
+通过基于Gibbs Sampling采样的LDA主题模型，提取文档主题
