@@ -1,14 +1,18 @@
 package com.hxf.lda;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.hxf.lda.util.FileUtil;
-import com.hxf.lda.util.Stopwords;
 
 /**
  * 文档集预处理
@@ -32,12 +36,12 @@ public class Documents {
 	}
 	
 	/**
-	 * 读取目标路径下的文档，该类中的主方法
+	 * 读取目标路径下的文档，该类中的主方法,LdaGibbsSampling.java里面调用该方法
 	 * @param docsPath
 	 */
-	public void readDocs(String docsPath){
+	public void readDocs(String docsPath,String stopWordPath){
 		for(File docFile : new File(docsPath).listFiles()){
-			Document doc = new Document(docFile.getAbsolutePath(), termToIndexMap, indexToTermMap, termCountMap);
+			Document doc = new Document(docFile.getAbsolutePath(), termToIndexMap, indexToTermMap, termCountMap,stopWordPath);
 			docs.add(doc);
 		}
 	}
@@ -48,20 +52,23 @@ public class Documents {
 		private String docName;
 		int[] docWords;
 		
-		public Document(String docName, Map<String, Integer> termToIndexMap, ArrayList<String> indexToTermMap, Map<String, Integer> termCountMap){
+		public Document(String docName, Map<String, Integer> termToIndexMap, ArrayList<String> indexToTermMap, Map<String, Integer> termCountMap,String stopWordPath){
+			
 			this.docName = docName;
+			HashSet<String> stopwordSet=setStopwordSet(stopWordPath);
 			
 			//Read file and initialize word index array
 			ArrayList<String> docLines = new ArrayList<String>();
 			ArrayList<String> words = new ArrayList<String>();
 			FileUtil.readLines(docName, docLines);
+			
 			for(String line : docLines){
 				FileUtil.tokenizeAndLowerCase(line, words);
 			}
 			
 			//Remove stop words and noise words
 			for(int i = 0; i < words.size(); i++){
-				if(Stopwords.isStopword(words.get(i)) || isNoiseWord(words.get(i))){
+				if(stopwordSet.contains(words.get(i)) || isNoiseWord(words.get(i))){
 					words.remove(i);
 					i--;
 				}
@@ -85,14 +92,16 @@ public class Documents {
 		}
 		
 		/**
-		 * Noise Word 进行判断
+		 * Noise Word 进行判断，去除@xxx和url作为噪音
 		 * @param string
 		 * @return
 		 */
 		public boolean isNoiseWord(String string) {
+			
 			string = string.toLowerCase().trim();
 			Pattern MY_PATTERN = Pattern.compile(".*[a-zA-Z]+.*");
 			Matcher m = MY_PATTERN.matcher(string);
+			
 			// filter @xxx and URL
 			if(string.matches(".*www\\..*") || string.matches(".*\\.com.*") || 
 					string.matches(".*http:.*") )
@@ -101,6 +110,30 @@ public class Documents {
 				return true;
 			} else
 				return false;
+		}
+		
+		/**
+		 * StopWordSet 建立
+		 * @param txtPath
+		 */
+		private static HashSet<String> setStopwordSet(String txtPath) {
+			
+			String str = "";
+			HashSet<String> stopwordSet = new HashSet<String>();
+			
+			try {
+				@SuppressWarnings("resource")
+				BufferedReader bufferedIn = new BufferedReader(new FileReader(txtPath));
+				while ((str = bufferedIn.readLine()) != null) {
+					stopwordSet.add(str);
+				}
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
+			return stopwordSet;
 		}
 		
 	}

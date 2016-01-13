@@ -4,58 +4,120 @@ import com.hxf.nlpir.config.Init.CLibrary;
 
 public class Nlpir {
 
-	public static void main(String[] args) throws Exception {
+	private static void init(String argu,int charset_type) {
 		
-		String argu = "";
-		String diveResult = "";
-		String keyWordResult ="";
-		String errorMessage="";
-		int charset_type = 1;
-		String sInput = "去年开始，打开百度李毅吧，满屏的帖子大多含有“屌丝”二字，一般网友不仅不懂这词什么意思，更难理解这个词为什么会这么火。然而从下半年开始，“屌丝”已经覆盖网络各个角落，人人争说屌丝，人人争当屌丝。从遭遇恶搞到群体自嘲，“屌丝”名号横空出世";
-
-//		初始化分词工具
 		int init_flag = CLibrary.Instance.NLPIR_Init(argu, charset_type, "0");
 		if (0 == init_flag) {
-			errorMessage = CLibrary.Instance.NLPIR_GetLastErrorMsg();
+			String errorMessage = CLibrary.Instance.NLPIR_GetLastErrorMsg();
 			System.err.println("初始化失败！fail reason is "+errorMessage);
 			return;
 		}
-		try {
-//			增加用户自定义语料库
-			CLibrary.Instance.NLPIR_ImportUserDict("test/Userdic.txt");
-//			参数0表示不带词性，参数1表示带有词性
-			diveResult = CLibrary.Instance.NLPIR_ParagraphProcess(sInput, 0);
-			System.out.println("不带词性分词结果为： " + diveResult);
-			
-			diveResult = CLibrary.Instance.NLPIR_ParagraphProcess(sInput, 1);
-			System.out.println("带词性分词结果为： " + diveResult+"\n");
+	}
+	
+	/**
+	 * @param argu
+	 * @param charset_type
+	 * @param sInput
+	 * @param type 参数0表示不带词性，参数1表示带有词性
+	 * @param userDict 
+	 * @return
+	 */
+	public static String diveWord(String argu,int charset_type,String sInput,int type, String userDict) {
+//		init seting
+		init(argu, charset_type);
+//		add user dic
+		CLibrary.Instance.NLPIR_ImportUserDict(userDict);
+//		get dive result
+		String diveResult = CLibrary.Instance.NLPIR_ParagraphProcess(sInput, type);
+		CLibrary.Instance.NLPIR_Exit();
+		return diveResult;
+		
+	}
+	
+	/**
+	 * Get KeyWord
+	 * @param argu
+	 * @param charset_type
+	 * @param sInput
+	 * @param num 返回的关键字数量
+	 * @param userDict 
+	 * @return
+	 */
+	public static String getKeyWord(String argu,int charset_type,String sInput,int num, String userDict) {
+//		init seting
+		init(argu, charset_type);
+//		add user dic
+		CLibrary.Instance.NLPIR_ImportUserDict("userDict");
+		String keyWordResult = CLibrary.Instance.NLPIR_GetKeyWords(sInput, num,false);
+		CLibrary.Instance.NLPIR_Exit();
+		return keyWordResult;
+	}
+	
+	/**
+	 * Get a filePath KeyWord
+	 * @param argu
+	 * @param charset_type
+	 * @param sInput
+	 * @param num
+	 * @param orifilePath
+	 * @param userDict 
+	 * @return
+	 */
+	public static String getFileKeyWord(String argu,int charset_type,String sInput,int num,String orifilePath, String userDict) {
 
-//			增加用户词典后与删除用户词典后,增加用户词典时，可以增加该词的词性，比如"更难理解 v"
-			CLibrary.Instance.NLPIR_AddUserWord("更难理解 v");
-			diveResult = CLibrary.Instance.NLPIR_ParagraphProcess(sInput, 1);
-			System.out.println("增加用户词典后分词结果为： " + diveResult);
-						
-			CLibrary.Instance.NLPIR_DelUsrWord("更难理解");
-			diveResult = CLibrary.Instance.NLPIR_ParagraphProcess(sInput, 1);
-			System.out.println("删除用户词典后分词结果为： " + diveResult+"\n");
-			
-//			对某个语料关键词的提取
-			keyWordResult = CLibrary.Instance.NLPIR_GetKeyWords(sInput, 10,false);
-			System.out.print("关键词提取结果是：" + keyWordResult+"\r\n");
+//		init seting
+		init(argu, charset_type);
+//		add user dic
+		CLibrary.Instance.NLPIR_ImportUserDict(userDict);
+		String keyWordResult = CLibrary.Instance.NLPIR_GetFileKeyWords(orifilePath, num,false);
+		CLibrary.Instance.NLPIR_Exit();
+		return keyWordResult;
+	}
+	
+	/**
+	 * Read a file word, output spilted word
+	 * @param argu
+	 * @param charset_type
+	 * @param sInput
+	 * @param num
+	 * @param orifilePath
+	 * @param utf8File
+	 * @param utf8FileResult
+	 * @param userDict 
+	 */
+	public static void getFileDiveWord(String argu,int charset_type,String sInput,String orifilePath,String utf8File,String utf8FileResult, String userDict) {
+//		init seting
+		init(argu, charset_type);
+//		add user dic
+		CLibrary.Instance.NLPIR_ImportUserDict(userDict);
+		CLibrary.Instance.NLPIR_FileProcess(utf8File, utf8FileResult,0);
+		CLibrary.Instance.NLPIR_Exit();
+	}
+	
+	/**
+	 * @param args
+	 * @throws Exception
+	 */
+	public static void main(String[] args) throws Exception {
+		
+		String argu = "";
+		int charset_type = 1;
+		String sInput = "去年开始，打开百度李毅吧，满屏的帖子大多含有“屌丝”二字，一般网友不仅不懂这词什么意思，更难理解这个词为什么会这么火。然而从下半年开始，“屌丝”已经覆盖网络各个角落，人人争说屌丝，人人争当屌丝。从遭遇恶搞到群体自嘲，“屌丝”名号横空出世";
+		String orifilePath="test/nlpir/屌丝，一个字头的诞生.txt";
+		String utf8File = "test/nlpir/屌丝，一个字头的诞生.txt";
+		String utf8FileResult = "test/nlpir/屌丝，一个字头的诞生_result.txt";
+		String userDict = "test/userDic.txt";
+		
+//		不带词性分词结果
+		System.out.println("不带词性分词结果为： " + diveWord(argu, charset_type, sInput, 0 ,userDict));
+//		带有词性分词结果
+		System.out.println("带词性分词结果为： " + diveWord(argu, charset_type, sInput, 1 ,userDict));
+//		关键词的提取
+		System.out.println("关键词提取结果是：" + getKeyWord(argu, charset_type, sInput, 3 ,userDict));
+//		对某个语料关键词的提取
+		System.out.println("关键词提取结果是：" + getFileKeyWord(argu, charset_type, sInput, 3, orifilePath ,userDict));
+//		对文件的读取与分词
+		getFileDiveWord(argu, charset_type, sInput, orifilePath, utf8File, utf8FileResult ,userDict);
 
-			keyWordResult = CLibrary.Instance.NLPIR_GetFileKeyWords("test/屌丝，一个字头的诞生.txt", 10,false);
-			System.out.print("关键词提取结果是：" + keyWordResult+"\r\n");
-
-//			文件分词的输入和输出
-			String utf8File = "test/屌丝，一个字头的诞生.txt";
-			String utf8FileResult = "test/屌丝，一个字头的诞生_result.txt";
-			CLibrary.Instance.NLPIR_FileProcess(utf8File, utf8FileResult,0);
-			
-			CLibrary.Instance.NLPIR_Exit();
-
-		} catch (Exception ex) {
-			// TODO Auto-generated catch block
-			ex.printStackTrace();
-		}
 	}
 }

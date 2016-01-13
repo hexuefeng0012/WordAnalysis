@@ -1,0 +1,8 @@
+alpha = 0.5
+beta = 0.01
+topicNum = 10
+docNum = 9
+termNum = 13709
+iterations = 1000
+saveStep = 100
+beginSaveIters = 900

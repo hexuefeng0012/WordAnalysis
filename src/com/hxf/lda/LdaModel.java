@@ -8,7 +8,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import com.hxf.lda.config.PathConfig;
 import com.hxf.lda.util.FileUtil;
 
 /**
@@ -96,7 +95,7 @@ public class LdaModel {
 	 * @param docSet
 	 * @throws IOException
 	 */
-	public void inferenceModel(Documents docSet) throws IOException {
+	public void inferenceModel(Documents docSet,String resultPath) throws IOException {
 
 		if(iterations < saveStep + beginSaveIters){
 			System.err.println("Error: the number of iterations should be larger than " + (saveStep + beginSaveIters));
@@ -111,7 +110,7 @@ public class LdaModel {
 				//Firstly update parameters
 				updateEstimatedParameters();
 				//Secondly print model variables
-				saveIteratedModel(i, docSet);
+				saveIteratedModel(i, docSet,resultPath);
 			}
 			
 			//Use Gibbs Sampling to update z[][]
@@ -150,10 +149,9 @@ public class LdaModel {
 	 * @param docSet
 	 * @throws IOException
 	 */
-	public void saveIteratedModel(int iters, Documents docSet) throws IOException {
+	public void saveIteratedModel(int iters, Documents docSet,String resPath) throws IOException {
 
 		//lda.params
-		String resPath = PathConfig.LdaResultsPath;
 		String modelName = "lda_" + iters;
 		ArrayList<String> lines = new ArrayList<String>();
 		lines.add("alpha = " + alpha);
@@ -204,9 +202,9 @@ public class LdaModel {
 				tWordsIndexArray.add(new Integer(j));
 			}
 			Collections.sort(tWordsIndexArray, new LdaModel.TwordsComparable(phi[i]));
-			writer.write("topic " + i + "\t:\t");
+			writer.write("topic " + (i+1) + "\t:\n");
 			for(int t = 0; t < topNum; t++){
-				writer.write(docSet.indexToTermMap.get(tWordsIndexArray.get(t)) + " " + phi[i][tWordsIndexArray.get(t)] + "\t");
+				writer.write(docSet.indexToTermMap.get(tWordsIndexArray.get(t)) + " " + phi[i][tWordsIndexArray.get(t)] + "\n");
 			}
 			writer.write("\n");
 		}

@@ -4,8 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import com.hxf.lda.config.ConstantConfig;
-import com.hxf.lda.config.PathConfig;
 import com.hxf.lda.util.FileUtil;
 
 /**
@@ -93,9 +91,10 @@ public class LdaGibbsSampling {
 	public static void main(String[] args) throws IOException {
 
 //		读取目标路径资源
-		String originalDocsPath = PathConfig.ldaDocsPath;
-		String resultPath = PathConfig.LdaResultsPath;
-		String parameterFile= ConstantConfig.LDAPARAMETERFILE;
+		String originalDocsPath = "test/lda/LdaOriginalDocs";
+		String resultPath = "test/lda/LdaResults/";
+		String parameterFile= "test/lda/LdaParameter/LdaParameters.txt";
+		String stopWordPath="test/stopWord.txt";
 		
 //		读取指定文件的参数
 		modelparameters ldaparameters = new modelparameters();
@@ -105,7 +104,7 @@ public class LdaGibbsSampling {
 //		termCountMap	HashMap<K,V> 对每个词进行编号，并统计其出现频数
 		long startTime=System.currentTimeMillis();		
 		Documents docSet = new Documents();
-		docSet.readDocs(originalDocsPath);
+		docSet.readDocs(originalDocsPath,stopWordPath);
 		System.out.println("wordMap size " + docSet.termToIndexMap.size());
 		
 //		结果目标路径是否存在
@@ -118,15 +117,15 @@ public class LdaGibbsSampling {
 		
 //		模型推断与学习
 		System.out.println("2 Learning and Saving the model ...");
-		model.inferenceModel(docSet);
+		model.inferenceModel(docSet, resultPath);
 		
 //		模型输出，输出迭代次数最后的模型，lda.params lda.phi lda.theta lda.tassign lda.twords
 		System.out.println("3 Output the final model ...");
-		model.saveIteratedModel(ldaparameters.iteration, docSet);
+		model.saveIteratedModel(ldaparameters.iteration, docSet, resultPath);
 		
 //		采样结束，得到计算耗时
 		long endTime=System.currentTimeMillis();
-		System.out.println("Done! Time spends  "+(endTime-startTime)+"ms");
+		System.out.println("Done! Time spends  "+ (endTime-startTime) + "ms");
 		
 	}
 }
